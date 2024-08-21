@@ -50,9 +50,11 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await reply(update.message, """
         This is a wip bot to generate ROM release posts
-        Run /new_release to try it out :D (probably wont work yet :/)
+        Run /new_post to try it out :D (probably wont work yet :/)
         """
     )
+
+
 
 tg_app  = ApplicationBuilder()             \
             .token(config.TG_BOT_TOKEN)     \

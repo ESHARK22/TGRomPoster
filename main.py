@@ -26,9 +26,10 @@ import coloredlogs
 
 from telegram import Update
 from telegram.ext import (
+    CommandHandler, ConversationHandler, MessageHandler,
     ApplicationBuilder,
-    CommandHandler,
-    ContextTypes
+    ContextTypes,
+    filters
 )
 
 from helper_msg import reply
@@ -54,14 +55,63 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         """
     )
 
+async def cmd_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Resets user_data, and ends the conversation."""
+    if not context.user_data:
+        raise Exception("No user data associated with this context!?!")
+    if not update.message:
+        raise Exception("No message associated with this update!?!")
+    if not update.message.from_user:
+        raise Exception("No from user was associated with this update!?!")
 
+    user_data = context.user_data
+    user_name = update.message.from_user.username
+    user_id = update.message.from_user.id
+    message = update.message
+
+    user_data["post"] = {}
+
+    await reply(message, """
+        Post cancelled!
+        All the saved data from this post has been discarded
+        """
+    )
+    return ConversationHandler.END
+
+async def cmd_new_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    error("Command: /new_post - TODO!")
+
+async def received_rom_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    error("ConvState: RomName - TODO!")
+
+class PostConversationState:
+    ROM_NAME    = 1
+    ROM_BANNER  = 2
+    DEVICE_NAME = 3
+    LINKS       = 4
+    POST        = 5
+
+new_post_conversation_handler = ConversationHandler (
+    entry_points = [
+        CommandHandler("new_post", cmd_new_post)
+    ],
+    states = {
+        PostConversationState.ROM_NAME: [
+            MessageHandler(filters.TEXT, received_rom_name)
+        ]
+    },
+    fallbacks = [
+        CommandHandler("cancel", cmd_cancel)
+    ]
+)
 
 tg_app  = ApplicationBuilder()             \
             .token(config.TG_BOT_TOKEN)     \
             .build()
 
-# Add the start command
+# Add the start command, and the conversation handler
 tg_app.add_handler(CommandHandler("start", cmd_start))
+tg_app.add_handler(new_post_conversation_handler)
 
 # Run the app
 tg_app.run_polling()

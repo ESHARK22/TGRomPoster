@@ -31,6 +31,7 @@ from telegram.ext import (
     ContextTypes
 )
 
+from helper_msg import reply
 import config
 
 # Setup logging
@@ -47,11 +48,11 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         error("> No message associated with this update!?!")
         return
 
-    await update.message.reply_text(
-        """ \
+    await reply(update.message, """
         This is a wip bot to generate ROM release posts
         Run /new_release to try it out :D (probably wont work yet :/)
-            """)
+        """
+    )
 
 tg_app  = ApplicationBuilder()             \
             .token(config.TG_BOT_TOKEN)     \

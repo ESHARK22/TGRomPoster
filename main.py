@@ -48,7 +48,8 @@ import config
 logger = logging.getLogger("RomManager")
 coloredlogs.install(level='DEBUG', logger=logger)
 (debug, info, warn, error, fatal) = \
-    ( logger.debug, logger.info, logger.warn, logger.error, logger.fatal )
+    (logger.debug, logger.info, logger.warn, logger.error, logger.fatal)
+
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     debug(f"Start command was run.")
@@ -61,7 +62,8 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         This is a wip bot to generate ROM release posts
         Run /new_post to try it out :D (probably wont work yet :/)
         """
-    )
+                )
+
 
 async def cmd_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Resets user_data, and ends the conversation."""
@@ -83,8 +85,9 @@ async def cmd_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         Post cancelled!
         All the saved data from this post has been discarded
         """
-    )
+                )
     return ConversationHandler.END
+
 
 async def cmd_new_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Starts the conversation, and asks for the ROM name"""
@@ -108,7 +111,7 @@ async def cmd_new_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     info(f"{user_name}({user_id}) started a new release")
 
     # Set the user data to empty
-    user_data["post"] = {} # pyright: ignore
+    user_data["post"] = {}  # pyright: ignore
 
     await reply(message, """
         Welcome to the ROM post generator by @eshark22
@@ -117,8 +120,9 @@ async def cmd_new_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         Part 1/5-todo) Send the name of the ROM
         """
-    )
+                )
     return PostConversationState.ROM_NAME
+
 
 async def received_rom_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Save the rom name, and ask for the ROM banner (image, or skip)"""
@@ -159,6 +163,7 @@ async def received_rom_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """)
     return PostConversationState.ROM_BANNER
 
+
 async def received_rom_banner(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Save the ROM banner image, and ask for the device name"""
 
@@ -196,6 +201,7 @@ async def received_rom_banner(update: Update, context: ContextTypes.DEFAULT_TYPE
     """)
     return PostConversationState.DEVICE_NAME
 
+
 async def cmd_skip_rom_banner(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Set the ROM banner image as None, and ask for the device name"""
 
@@ -221,6 +227,7 @@ async def cmd_skip_rom_banner(update: Update, context: ContextTypes.DEFAULT_TYPE
         Part 3/5-todo) Send the device name
     """)
     return PostConversationState.DEVICE_NAME
+
 
 async def received_device_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Save the device name, and ask for the links"""
@@ -256,6 +263,7 @@ async def received_device_name(update: Update, context: ContextTypes.DEFAULT_TYP
         Multiple links can be split by new lines'
     """)
     return PostConversationState.LINKS
+
 
 async def received_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Save the ROM banner image, and ask for the device name"""
@@ -323,6 +331,7 @@ async def received_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return PostConversationState.POST
 
+
 async def cmd_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Save the ROM banner image, and ask for the device name"""
 
@@ -352,8 +361,7 @@ async def cmd_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_to_message=message,
         photo=post_rom_banner_file_id,
         parse_mode=ParseMode.MARKDOWN_V2,
-        text=
-        f"""
+        text=f"""
         {post_rom_name}
 
         Build date: {datetime.now().strftime("%d\\.%m\\.%Y")}
@@ -368,17 +376,18 @@ async def cmd_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 class PostConversationState:
-    ROM_NAME    = 1
-    ROM_BANNER  = 2
+    ROM_NAME = 1
+    ROM_BANNER = 2
     DEVICE_NAME = 3
-    LINKS       = 4
-    POST        = 5
+    LINKS = 4
+    POST = 5
 
-new_post_conversation_handler = ConversationHandler (
-    entry_points = [
+
+new_post_conversation_handler = ConversationHandler(
+    entry_points=[
         CommandHandler("new_post", cmd_new_post)
     ],
-    states = {
+    states={
         PostConversationState.ROM_NAME: [
             MessageHandler(filters.TEXT, received_rom_name)
         ],
@@ -396,17 +405,17 @@ new_post_conversation_handler = ConversationHandler (
             CommandHandler("post", cmd_post)
         ]
     },
-    fallbacks = [
+    fallbacks=[
         CommandHandler("cancel", cmd_cancel)
     ]
 )
 
 defaults = Defaults(parse_mode=ParseMode.HTML)
 
-tg_app  = ApplicationBuilder()          \
-            .token(config.TG_BOT_TOKEN)  \
-            .defaults(defaults)           \
-            .build()
+tg_app = ApplicationBuilder()          \
+    .token(config.TG_BOT_TOKEN)  \
+    .defaults(defaults)           \
+    .build()
 
 # Add the start command, and the conversation handler
 tg_app.add_handler(CommandHandler("start", cmd_start))

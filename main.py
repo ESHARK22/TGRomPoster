@@ -1,5 +1,4 @@
 # This is a bot to allow builders to create and post ROM releases to the relevant device channel
-
 # Data: Post : {
 #   "rom_name": "Leaf OS"
 #   "rom_banner_file_id": None|FileID
@@ -10,7 +9,6 @@
 #   ]
 #   "MessageID": MessageId|None -> used to edit the message
 # }
-
 # Data: Device Topic Info: {
 #   "device_name": {
 #       "TopicThreadID": "topic_id
@@ -20,17 +18,21 @@
 #       ]
 #   }
 # }
-
 import logging
 
 import coloredlogs
 import config
 from telegram import Update
-from telegram.ext import (ApplicationBuilder, CommandHandler, ContextTypes,
-                          ConversationHandler, MessageHandler, filters)
+from telegram.ext import ApplicationBuilder
+from telegram.ext import CommandHandler
+from telegram.ext import ContextTypes
+from telegram.ext import ConversationHandler
+from telegram.ext import filters
+from telegram.ext import MessageHandler
 
-from helper_errors import (MissingMessageDataError,
-                           MissingMessageFromUserError, MissingUserDataError)
+from helper_errors import MissingMessageDataError
+from helper_errors import MissingMessageFromUserError
+from helper_errors import MissingUserDataError
 from helper_msg import reply
 
 # Setup logging

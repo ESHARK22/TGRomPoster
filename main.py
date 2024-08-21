@@ -24,8 +24,41 @@
 import logging
 import coloredlogs
 
+from telegram import Update
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    ContextTypes
+)
+
+import config
+
 # Setup logging
 logger = logging.getLogger("RomManager")
 coloredlogs.install(level='DEBUG', logger=logger)
 (debug, info, warn, error, fatal) = \
     ( logger.debug, logger.info, logger.warn, logger.error, logger.fatal )
+
+async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    debug(f"Start command was run.")
+    debug(f" > Update: {update}")
+
+    if not update.message:
+        error("> No message associated with this update!?!")
+        return
+
+    await update.message.reply_text(
+        """ \
+        This is a wip bot to generate ROM release posts
+        Run /new_release to try it out :D (probably wont work yet :/)
+            """)
+
+tg_app  = ApplicationBuilder()             \
+            .token(config.TG_BOT_TOKEN)     \
+            .build()
+
+# Add the start command
+tg_app.add_handler(CommandHandler("start", cmd_start))
+
+# Run the app
+tg_app.run_polling()

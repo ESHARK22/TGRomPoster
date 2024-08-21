@@ -32,6 +32,11 @@ from telegram.ext import (
     filters
 )
 
+from helper_errors import (
+    MissingUserDataError,
+    MissingMessageDataError,
+    MissingMessageFromUserError,
+)
 from helper_msg import reply
 import config
 
@@ -58,11 +63,11 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def cmd_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Resets user_data, and ends the conversation."""
     if not context.user_data:
-        raise Exception("No user data associated with this context!?!")
+        raise MissingUserDataError()
     if not update.message:
-        raise Exception("No message associated with this update!?!")
+        raise MissingMessageDataError()
     if not update.message.from_user:
-        raise Exception("No from user was associated with this update!?!")
+        raise MissingMessageFromUserError()
 
     user_data = context.user_data
     user_name = update.message.from_user.username
@@ -79,10 +84,74 @@ async def cmd_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 async def cmd_new_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    error("Command: /new_post - TODO!")
+    """Starts the conversation, and asks for the ROM name"""
+
+    # Make sure everything we need exists
+    if not context.user_data:
+        raise MissingUserDataError()
+    if not update.message:
+        raise MissingMessageDataError()
+    if not update.message.from_user:
+        raise MissingMessageFromUserError()
+
+    user_data = context.user_data
+    user_name = update.message.from_user.username
+    user_id = update.message.from_user.id
+    message = update.message
+
+    info(f"{user_name}({user_id}) started a new release")
+
+    # Set the user data to empty
+    user_data["post"] = {} # pyright: ignore
+
+    await reply(message, """
+        Welcome to the ROM post generator by @eshark22
+
+        You can canel this post at any time using /cancel
+
+        Part 1/5-todo) Send the name of the ROM
+        """
+    )
+    return PostConversationState.ROM_NAME
 
 async def received_rom_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    error("ConvState: RomName - TODO!")
+    """Save the rom name, and ask for the ROM banner (image, or skip)"""
+
+    # Make sure everything we need exists
+    if not context.user_data:
+        raise MissingUserDataError()
+    if not update.message:
+        raise MissingMessageDataError()
+    if not update.message.from_user:
+        raise MissingMessageFromUserError()
+
+    user_data = context.user_data
+    user_name = update.message.from_user.username
+    user_id = update.message.from_user.id
+    message = update.message
+
+    # Get the rom name that was sent
+    rom_name = update.message.text
+
+    # Make sure the rom name exists
+    if not rom_name:
+        await reply(update.message, f"""
+            No Rom name was provided!?!
+
+            Part 1/5-todo) Try sending a rom name again
+        """)
+        return PostConversationState.ROM_NAME
+
+    # Save the rom name
+    user_data["post"]["rom_name"] = rom_name
+    info(f"{user_name}({user_id}) set '{rom_name}' as the rom name")
+
+    await reply(update.message, f"""
+        Set "{rom_name}" as the ROM name
+
+        Part 2/5-todo) Send either an image to set as a banner, or send 'skip'
+    """)
+    return PostConversationState.ROM_BANNER
 
 class PostConversationState:
     ROM_NAME    = 1

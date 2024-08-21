@@ -23,12 +23,15 @@
 
 import logging
 import coloredlogs
+from datetime import datetime
 
 from telegram import Update
+from telegram.constants import ParseMode
 from telegram.ext import (
     CommandHandler, ConversationHandler, MessageHandler,
     ApplicationBuilder,
     ContextTypes,
+    Defaults,
     filters
 )
 
@@ -279,13 +282,14 @@ async def received_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
             Try again...
         """)
         return PostConversationState.LINKS
+    print(repr(links))
 
     # Turn it into a list
     if "\n" in links:
         links = links.split("\n")
     else:
         links = [links]
-
+    print(repr(links))
     # Check each link that was passed
     for link in links:
         if not is_valid_link(link):
@@ -334,9 +338,34 @@ async def cmd_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_name = update.message.from_user.username
     user_id = update.message.from_user.id
     message = update.message
-    post_data = user_data["post"]
 
-    info(post_data)
+    post_data = user_data["post"]
+    post_rom_name = post_data["rom_name"]
+    post_rom_banner_file_id = post_data["rom_banner_file_id"]
+    post_device = post_data["device_name"]
+    post_links = post_data["links"]
+    parsed_links = ""
+    for link in post_links:
+        parsed_links += f"• {link} \n"
+
+    await reply(
+        reply_to_message=message,
+        photo=post_rom_banner_file_id,
+        parse_mode=ParseMode.MARKDOWN_V2,
+        text=
+        f"""
+        {post_rom_name}
+
+        Build date: {datetime.now().strftime("%d\\.%m\\.%Y")}
+        By {user_name}
+
+        Device: {post_device}
+
+        Links:
+        {parsed_links}
+        """,
+    )
+
 
 class PostConversationState:
     ROM_NAME    = 1
@@ -372,8 +401,11 @@ new_post_conversation_handler = ConversationHandler (
     ]
 )
 
-tg_app  = ApplicationBuilder()             \
-            .token(config.TG_BOT_TOKEN)     \
+defaults = Defaults(parse_mode=ParseMode.HTML)
+
+tg_app  = ApplicationBuilder()          \
+            .token(config.TG_BOT_TOKEN)  \
+            .defaults(defaults)           \
             .build()
 
 # Add the start command, and the conversation handler

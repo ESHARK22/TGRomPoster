@@ -124,7 +124,8 @@ async def cmd_new_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return PostConversationState.ROM_NAME
 
 
-async def received_rom_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def received_rom_name(update: Update,
+                            context: ContextTypes.DEFAULT_TYPE):
     """Save the rom name, and ask for the ROM banner (image, or skip)"""
 
     # Make sure everything we need exists
@@ -182,9 +183,8 @@ class PostConversationState:
 new_post_conversation_handler = ConversationHandler(
     entry_points=[CommandHandler("new_post", cmd_new_post)],
     states={
-        PostConversationState.ROM_NAME: [
-            MessageHandler(filters.TEXT, received_rom_name)
-        ]
+        PostConversationState.ROM_NAME:
+        [MessageHandler(filters.TEXT, received_rom_name)]
     },
     fallbacks=[CommandHandler("cancel", cmd_cancel)],
 )

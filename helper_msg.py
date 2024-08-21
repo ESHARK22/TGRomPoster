@@ -1,5 +1,6 @@
-from telegram import Message
 from textwrap import dedent
+
+from telegram import Message
 
 
 async def reply(reply_to_message: Message, text: str):

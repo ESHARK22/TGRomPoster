@@ -169,6 +169,7 @@ async def received_rom_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 class PostConversationState:
+    """ """
     ROM_NAME = 1
     ROM_BANNER = 2
     DEVICE_NAME = 3

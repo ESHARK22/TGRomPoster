@@ -1,6 +1,7 @@
+from textwrap import dedent
+
 from telegram import Message
 from telegram.constants import ParseMode
-from textwrap import dedent
 
 
 async def reply(

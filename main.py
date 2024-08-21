@@ -20,3 +20,12 @@
 #       ]
 #   }
 # }
+
+import logging
+import coloredlogs
+
+# Setup logging
+logger = logging.getLogger("RomManager")
+coloredlogs.install(level='DEBUG', logger=logger)
+(debug, info, warn, error, fatal) = \
+    ( logger.debug, logger.info, logger.warn, logger.error, logger.fatal )

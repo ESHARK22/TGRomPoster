@@ -26,10 +26,12 @@ import coloredlogs
 
 from telegram import Update
 from telegram.ext import (
-    CommandHandler, ConversationHandler, MessageHandler,
+    CommandHandler,
+    ConversationHandler,
+    MessageHandler,
     ApplicationBuilder,
     ContextTypes,
-    filters
+    filters,
 )
 
 from helper_errors import (
@@ -42,9 +44,14 @@ import config
 
 # Setup logging
 logger = logging.getLogger("RomManager")
-coloredlogs.install(level='DEBUG', logger=logger)
-(debug, info, warn, error, fatal) = \
-    (logger.debug, logger.info, logger.warn, logger.error, logger.fatal)
+coloredlogs.install(level="DEBUG", logger=logger)
+(debug, info, warn, error, fatal) = (
+    logger.debug,
+    logger.info,
+    logger.warn,
+    logger.error,
+    logger.fatal,
+)
 
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -55,11 +62,13 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         error("> No message associated with this update!?!")
         return
 
-    await reply(update.message, """
+    await reply(
+        update.message,
+        """
         This is a wip bot to generate ROM release posts
         Run /new_post to try it out :D (probably wont work yet :/)
-        """
-                )
+        """,
+    )
 
 
 async def cmd_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -78,11 +87,13 @@ async def cmd_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user_data["post"] = {}
 
-    await reply(message, """
+    await reply(
+        message,
+        """
         Post cancelled!
         All the saved data from this post has been discarded
-        """
-                )
+        """,
+    )
     return ConversationHandler.END
 
 
@@ -107,14 +118,16 @@ async def cmd_new_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Set the user data to empty
     user_data["post"] = {}  # pyright: ignore
 
-    await reply(message, """
+    await reply(
+        message,
+        """
         Welcome to the ROM post generator by @eshark22
 
         You can canel this post at any time using /cancel
 
         Part 1/5-todo) Send the name of the ROM
-        """
-                )
+        """,
+    )
     return PostConversationState.ROM_NAME
 
 
@@ -139,22 +152,28 @@ async def received_rom_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Make sure the rom name exists
     if not rom_name:
-        await reply(update.message, f"""
+        await reply(
+            update.message,
+            f"""
             No Rom name was provided!?!
 
             Part 1/5-todo) Try sending a rom name again
-        """)
+        """,
+        )
         return PostConversationState.ROM_NAME
 
     # Save the rom name
     user_data["post"]["rom_name"] = rom_name
     info(f"{user_name}({user_id}) set '{rom_name}' as the rom name")
 
-    await reply(update.message, f"""
+    await reply(
+        update.message,
+        f"""
         Set "{rom_name}" as the ROM name
 
         Part 2/5-todo) Send either an image to set as a banner, or send 'skip'
-    """)
+    """,
+    )
     return PostConversationState.ROM_BANNER
 
 
@@ -167,22 +186,16 @@ class PostConversationState:
 
 
 new_post_conversation_handler = ConversationHandler(
-    entry_points=[
-        CommandHandler("new_post", cmd_new_post)
-    ],
+    entry_points=[CommandHandler("new_post", cmd_new_post)],
     states={
         PostConversationState.ROM_NAME: [
             MessageHandler(filters.TEXT, received_rom_name)
         ]
     },
-    fallbacks=[
-        CommandHandler("cancel", cmd_cancel)
-    ]
+    fallbacks=[CommandHandler("cancel", cmd_cancel)],
 )
 
-tg_app = ApplicationBuilder()             \
-    .token(config.TG_BOT_TOKEN)     \
-    .build()
+tg_app = ApplicationBuilder().token(config.TG_BOT_TOKEN).build()
 
 # Add the start command, and the conversation handler
 tg_app.add_handler(CommandHandler("start", cmd_start))

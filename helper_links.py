@@ -6,7 +6,7 @@ patern = re.compile(r"\[[ -~]+\]\(http(s)?:\/\/[ -~]+\)")
 def is_valid_link(link: str) -> bool:
     """
 
-    :param link: str: 
+    :param link: str:
 
     """
     if patern.match(link):
@@ -18,7 +18,7 @@ def is_valid_link(link: str) -> bool:
 def parse_link(link: str) -> str:
     """
 
-    :param link: str: 
+    :param link: str:
 
     """
     link_name = link.split("]")[0].removeprefix("[")

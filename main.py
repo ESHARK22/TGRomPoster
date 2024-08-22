@@ -90,11 +90,7 @@ async def cmd_new_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Starts the conversation, and asks for the ROM name"""
 
     # Make sure everything we need exists
-
-    # We dont need user_data, since it doesnt exist yet...
-    # if not context.user_data:
-    #     raise MissingUserDataError()
-
+    # (We dont need user_data, since it doesnt exist yet)
     if not update.message:
         raise MissingMessageDataError()
     if not update.message.from_user:
@@ -137,7 +133,7 @@ async def received_rom_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
 
     # Get the rom name that was sent
-    rom_name = update.message.text
+    rom_name = update.message.text_html_urled
 
     # Make sure the rom name exists
     if not rom_name:
@@ -238,7 +234,7 @@ async def received_device_name(update: Update, context: ContextTypes.DEFAULT_TYP
     user_id = update.message.from_user.id
     message = update.message
 
-    device_name = update.message.text
+    device_name = update.message.text_html
     if not device_name:
         error("No device names were provided!?!")
         await reply(message, """
@@ -252,13 +248,12 @@ async def received_device_name(update: Update, context: ContextTypes.DEFAULT_TYP
     await reply(message, f"""
         Set the device name as {device_name}
 
-        Part 4/5-todo) Send the links in the following format: [URL](http://www.example.com/)
-        Multiple links can be split by new lines'
+        Part 4/5-todo) Send the rest of the post (notes, links, ...) already formatted how you would like it
     """)
-    return PostConversationState.LINKS
+    return PostConversationState.EXTRA
 
-async def received_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Save the ROM banner image, and ask for the device name"""
+async def received_extra(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Save the extra data, and ask to generate the post"""
 
     # Make sure everything we need exists
     if not context.user_data:
@@ -274,40 +269,21 @@ async def received_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
 
     # Get what the user sent
-    links = update.message.text
-    if not links:
-        error("No download links were provided!?!")
+    extras  = update.message.text_html_urled
+    if not extras:
+        error("No extras were provided!?!")
         await reply(message, """
-            No download links were provided!?!
+            No extras were provided!?!
             Try again...
         """)
-        return PostConversationState.LINKS
-    print(repr(links))
+        return PostConversationState.EXTRA
+    user_data["post"]["extras"] = extras
 
-    # Turn it into a list
-    if "\n" in links:
-        links = links.split("\n")
-    else:
-        links = [links]
-    print(repr(links))
-    # Check each link that was passed
-    for link in links:
-        if not is_valid_link(link):
-            error(f"Invalid link was provided: {link}")
-            await reply(message, """
-                Invalid download link was provided
-                Try again...
-            """)
-            return PostConversationState.LINKS
-
-    user_data["post"]["links"] = links
     post = user_data["post"]
-    link_str = "\n"
-    for link in links:
-        link_str += f"      -> {link}"
-        link_str += "\n"
 
-    await reply(update.message, f"""
+    await reply(update.message,
+        parse_mode=None,
+        text=f"""
         Yay, those were valid links...
 
         Here is the current info:
@@ -315,7 +291,8 @@ async def received_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
         Rom Name: {post["rom_name"]}
         Rom banner (file id): {post["rom_banner_file_id"]}
         Device Name: {post["device_name"]}
-        Links: {link_str}
+        Extras:
+        {post["extras"]}
         ```
         Send /post to create this post
         or /cancel to cancel it
@@ -335,7 +312,7 @@ async def cmd_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
         raise MissingMessageFromUserError()
 
     user_data = context.user_data
-    user_name = update.message.from_user.username
+    user_name = update.message.from_user.mention_html()
     user_id = update.message.from_user.id
     message = update.message
 
@@ -343,26 +320,20 @@ async def cmd_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     post_rom_name = post_data["rom_name"]
     post_rom_banner_file_id = post_data["rom_banner_file_id"]
     post_device = post_data["device_name"]
-    post_links = post_data["links"]
-    parsed_links = ""
-    for link in post_links:
-        parsed_links += f"• {link} \n"
+    post_extras = post_data["extras"]
 
     await reply(
         reply_to_message=message,
         photo=post_rom_banner_file_id,
-        parse_mode=ParseMode.MARKDOWN_V2,
-        text=
-        f"""
+        text=f"""
         {post_rom_name}
 
-        Build date: {datetime.now().strftime("%d\\.%m\\.%Y")}
+        Build date: {datetime.now().strftime("%d.%m.%Y")}
         By {user_name}
 
         Device: {post_device}
 
-        Links:
-        {parsed_links}
+        {post_extras}
         """,
     )
 
@@ -371,7 +342,7 @@ class PostConversationState:
     ROM_NAME    = 1
     ROM_BANNER  = 2
     DEVICE_NAME = 3
-    LINKS       = 4
+    EXTRA       = 4
     POST        = 5
 
 new_post_conversation_handler = ConversationHandler (
@@ -389,8 +360,8 @@ new_post_conversation_handler = ConversationHandler (
         PostConversationState.DEVICE_NAME: [
             MessageHandler(filters.TEXT, received_device_name)
         ],
-        PostConversationState.LINKS: [
-            MessageHandler(filters.TEXT, received_links)
+        PostConversationState.EXTRA: [
+            MessageHandler(filters.TEXT, received_extra)
         ],
         PostConversationState.POST: [
             CommandHandler("post", cmd_post)

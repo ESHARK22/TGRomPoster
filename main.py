@@ -126,7 +126,8 @@ async def cmd_new_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return PostConversationState.ROM_NAME
 
 
-async def received_rom_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def received_rom_name(update: Update,
+                            context: ContextTypes.DEFAULT_TYPE):
     """Save the rom name, and ask for the ROM banner (image, or skip)"""
 
     # Make sure everything we need exists
@@ -172,7 +173,8 @@ async def received_rom_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return PostConversationState.ROM_BANNER
 
 
-async def received_rom_banner(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def received_rom_banner(update: Update,
+                              context: ContextTypes.DEFAULT_TYPE):
     """Save the ROM banner image, and ask for the device name"""
 
     # Make sure everything we need exists
@@ -216,7 +218,8 @@ async def received_rom_banner(update: Update, context: ContextTypes.DEFAULT_TYPE
     return PostConversationState.DEVICE_NAME
 
 
-async def cmd_skip_rom_banner(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_skip_rom_banner(update: Update,
+                              context: ContextTypes.DEFAULT_TYPE):
     """Set the ROM banner image as None, and ask for the device name"""
 
     # Make sure everything we need exists
@@ -246,7 +249,8 @@ async def cmd_skip_rom_banner(update: Update, context: ContextTypes.DEFAULT_TYPE
     return PostConversationState.DEVICE_NAME
 
 
-async def received_device_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def received_device_name(update: Update,
+                               context: ContextTypes.DEFAULT_TYPE):
     """Save the device name, and ask for the links"""
 
     # Make sure everything we need exists
@@ -391,17 +395,16 @@ class PostConversationState:
 new_post_conversation_handler = ConversationHandler(
     entry_points=[CommandHandler("new_post", cmd_new_post)],
     states={
-        PostConversationState.ROM_NAME: [
-            MessageHandler(filters.TEXT, received_rom_name)
-        ],
+        PostConversationState.ROM_NAME:
+        [MessageHandler(filters.TEXT, received_rom_name)],
         PostConversationState.ROM_BANNER: [
             MessageHandler(filters.PHOTO, received_rom_banner),
             CommandHandler("skip", cmd_skip_rom_banner),
         ],
-        PostConversationState.DEVICE_NAME: [
-            MessageHandler(filters.TEXT, received_device_name)
-        ],
-        PostConversationState.EXTRA: [MessageHandler(filters.TEXT, received_extra)],
+        PostConversationState.DEVICE_NAME:
+        [MessageHandler(filters.TEXT, received_device_name)],
+        PostConversationState.EXTRA:
+        [MessageHandler(filters.TEXT, received_extra)],
         PostConversationState.POST: [CommandHandler("post", cmd_post)],
     },
     fallbacks=[CommandHandler("cancel", cmd_cancel)],
@@ -409,7 +412,8 @@ new_post_conversation_handler = ConversationHandler(
 
 defaults = Defaults(parse_mode=ParseMode.HTML)
 
-tg_app = ApplicationBuilder().token(config.TG_BOT_TOKEN).defaults(defaults).build()
+tg_app = ApplicationBuilder().token(
+    config.TG_BOT_TOKEN).defaults(defaults).build()
 
 # Add the start command, and the conversation handler
 tg_app.add_handler(CommandHandler("start", cmd_start))
